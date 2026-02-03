@@ -269,7 +269,7 @@ extension MeterReporter {
             request.addValue(host, forHTTPHeaderField: "MeterReporter-Host-Id")
         }
 
-        request.addValue("application/vnd.chimehq-mxdiagnostic", forHTTPHeaderField: "Content-Type")
+        request.addValue("Application/json", forHTTPHeaderField: "Content-Type")
 
         return request
     }
