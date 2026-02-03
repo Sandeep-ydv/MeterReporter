@@ -1,5 +1,5 @@
 import Foundation
-import Wells
+// Wells import removed - now using ReportSubmitter protocol abstraction
 import Meter
 @preconcurrency import os.log
 #if os(macOS)
@@ -18,7 +18,7 @@ extension UUID {
 ///
 /// - Important: You must hold a reference to an instance of this class to keep it active.
 public actor MeterReporter {
-    private let wellsReporter: WellsReporter
+    private let submitter: any ReportSubmitter
     public let configuration: Configuration
     private let subscriber: DiagnosticSubscriber
     private let log: OSLog
@@ -27,17 +27,19 @@ public actor MeterReporter {
         self.configuration = configuration
         self.subscriber = DiagnosticSubscriber()
         self.log = OSLog(subsystem: "com.chimehq.MeterReporter", category: "MeterReporter")
-        self.wellsReporter = WellsReporter(baseURL: configuration.reportsURL,
-                                           backgroundIdentifier: configuration.backgroundIdentifier)
+        self.submitter = Self.createSubmitter(
+            baseURL: configuration.reportsURL,
+            backgroundIdentifier: configuration.backgroundIdentifier
+        )
 
 		let baseURL = configuration.reportsURL
 
-		Task { [wellsReporter] in
-			await wellsReporter.setLocationProvider {
+		Task { [submitter] in
+			await submitter.setLocationProvider {
 				baseURL.appendingPathComponent($0).appendingPathExtension("mxdiagnostic")
 			}
 
-			await wellsReporter.setExistingLogHandler {logUrl, date in
+			await submitter.setExistingLogHandler {logUrl, date in
 				Task { [weak self] in
 					await self?.handleExistingLog(at: logUrl, date: date)
 				}
@@ -52,9 +54,9 @@ public actor MeterReporter {
     public func start() {
         os_log("starting", log: log, type: .debug)
 
-		Task { [log, wellsReporter] in
+		Task { [log, submitter] in
 			do {
-				try await wellsReporter.createReportDirectoryIfNeeded()
+				try await submitter.createReportDirectoryIfNeeded()
 			} catch {
 				os_log("failed to create reporting directory %{public}@", log: log, type: .error, String(describing: error))
 				return
@@ -72,7 +74,34 @@ public actor MeterReporter {
     }
 
     private nonisolated var reportDirectoryURL: URL {
-        return wellsReporter.baseURL
+        return submitter.baseURL
+    }
+}
+
+// MARK: - Submitter Factory
+extension MeterReporter {
+    /// Creates the appropriate ReportSubmitter implementation based on platform availability
+    /// - Parameters:
+    ///   - baseURL: Base directory for storing reports
+    ///   - backgroundIdentifier: Optional identifier for background URLSession
+    /// - Returns: WellsReportSubmitter on iOS 14+, NoOpReportSubmitter on iOS 13
+    private static func createSubmitter(
+        baseURL: URL,
+        backgroundIdentifier: String?
+    ) -> any ReportSubmitter {
+        #if canImport(Wells)
+        if #available(iOS 14.0, macOS 12.0, tvOS 14.0, watchOS 7.0, *) {
+            return WellsReportSubmitter(
+                baseURL: baseURL,
+                backgroundIdentifier: backgroundIdentifier
+            )
+        }
+        #endif
+
+        return NoOpReportSubmitter(
+            baseURL: baseURL,
+            backgroundIdentifier: backgroundIdentifier
+        )
     }
 }
 
@@ -84,13 +113,35 @@ extension MeterReporter {
 		/// The NSURLSession background indentifier
 		///
 		/// This has a default value, but can be customized if needed. Setting the value to `nil` will disable background uploading.
-		public var backgroundIdentifier: String? = WellsReporter.defaultBackgroundIdentifier
-        public var reportsURL: URL = WellsReporter.defaultDirectory
+		public var backgroundIdentifier: String? = Self.computedDefaultBackgroundIdentifier
+        public var reportsURL: URL = Self.computedDefaultDirectory
         public var log: OSLog = OSLog(subsystem: "com.chimehq.MeterReporter", category: "MeterReporter")
         public var filterSimulatedPayloads = true
 
         public init(endpointURL: URL) {
             self.endpointURL = endpointURL
+        }
+
+        // MARK: - Default Value Computation
+
+        /// Default background identifier, using Wells on iOS 14+ or fallback on iOS 13
+        private static var computedDefaultBackgroundIdentifier: String {
+            #if canImport(Wells)
+            if #available(iOS 14.0, macOS 12.0, tvOS 14.0, watchOS 7.0, *) {
+                return WellsReportSubmitter.defaultBackgroundIdentifier
+            }
+            #endif
+            return NoOpReportSubmitter.defaultBackgroundIdentifier
+        }
+
+        /// Default directory for reports, using Wells on iOS 14+ or fallback on iOS 13
+        private static var computedDefaultDirectory: URL {
+            #if canImport(Wells)
+            if #available(iOS 14.0, macOS 12.0, tvOS 14.0, watchOS 7.0, *) {
+                return WellsReportSubmitter.defaultDirectory
+            }
+            #endif
+            return NoOpReportSubmitter.defaultDirectory
         }
     }
 }
@@ -205,8 +256,8 @@ extension MeterReporter {
 
         let request = makeURLRequest(for: id)
 
-		Task { [wellsReporter] in
-			await wellsReporter.submit(fileURL: url, identifier: id, uploadRequest: request)
+		Task { [submitter] in
+			await submitter.submit(fileURL: url, identifier: id, uploadRequest: request)
 		}
     }
 
