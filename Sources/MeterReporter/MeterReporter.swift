@@ -22,11 +22,13 @@ public actor MeterReporter {
     public let configuration: Configuration
     private let subscriber: DiagnosticSubscriber
     private let log: OSLog
+    private nonisolated let baseURL: URL
 
     public init(configuration: Configuration) {
         self.configuration = configuration
         self.subscriber = DiagnosticSubscriber()
         self.log = OSLog(subsystem: "com.chimehq.MeterReporter", category: "MeterReporter")
+        self.baseURL = configuration.reportsURL
         self.submitter = Self.createSubmitter(
             baseURL: configuration.reportsURL,
             backgroundIdentifier: configuration.backgroundIdentifier
@@ -74,7 +76,7 @@ public actor MeterReporter {
     }
 
     private nonisolated var reportDirectoryURL: URL {
-        return submitter.baseURL
+        return baseURL
     }
 }
 
