@@ -13,7 +13,7 @@ MeterReporter will capture MetricKit payloads and relay them to a backend. It us
 ## Integration
 ```swift
 dependencies: [
-    .package(url: "https://github.com/ChimeHQ/MeterReporter")
+    .package(url: "https://github.com/Sandeep-ydv/MeterReporter")
 ]
 ```
 

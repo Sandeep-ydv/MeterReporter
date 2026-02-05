@@ -3,7 +3,7 @@
     {
       "identity" : "background",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ChimeHQ/Background",
+      "location" : "https://github.com/Sandeep-ydv/Background",
       "state" : {
         "revision" : "11f1bc95a7ec88c275b522b12883ada9dbc062e6"
       }
