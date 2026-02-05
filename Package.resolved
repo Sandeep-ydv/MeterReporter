@@ -20,7 +20,7 @@
     {
       "identity" : "wells",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ChimeHQ/Wells",
+      "location" : "https://github.com/Sandeep-ydv/Wells",
       "state" : {
         "revision" : "c31f833829083c5966adeff16832879acdcad214"
       }
