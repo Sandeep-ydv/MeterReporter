@@ -122,8 +122,10 @@ extension MeterReporter {
         public var log: OSLog = OSLog(subsystem: "com.chimehq.MeterReporter", category: "MeterReporter")
         public var filterSimulatedPayloads = true
 
-        public init(endpointURL: URL) {
+        public init(endpointURL: URL, appName: String, appShortCode: String ) {
             self.endpointURL = endpointURL
+            self.appName: appName
+            self.appShortCode: appShortCode
         }
 
         // MARK: - Default Value Computation
