@@ -49,8 +49,8 @@ public actor MeterReporter {
 		}
     }
 
-    public init(endpointURL: URL) {
-        self.init(configuration: Configuration(endpointURL: endpointURL))
+    public init(endpointURL: URL, appName: String, appShortCode: String) {
+        self.init(configuration: Configuration(endpointURL: endpointURL, appName: appName, appShortCode: appShortCode))
     }
 
     public func start() {
