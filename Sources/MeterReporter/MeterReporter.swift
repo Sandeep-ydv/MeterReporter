@@ -111,6 +111,8 @@ extension MeterReporter {
 	public struct Configuration: Sendable {
         public var endpointURL: URL
         public var hostIdentifier: String?
+        public var appName: URL
+        public var appShortCode: String?
 
 		/// The NSURLSession background indentifier
 		///
@@ -321,7 +323,8 @@ extension MeterReporter {
         if let host = configuration.hostIdentifier {
             request.addValue(host, forHTTPHeaderField: "MeterReporter-Host-Id")
         }
-
+        request.addValue(configuration.appShortCode, forHTTPHeaderField: "appShortCode")
+        request.addValue(configuration.appName, forHTTPHeaderField: "appName")
         request.addValue("Application/json", forHTTPHeaderField: "Content-Type")
 
         return request
