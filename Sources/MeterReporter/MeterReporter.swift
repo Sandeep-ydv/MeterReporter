@@ -111,8 +111,8 @@ extension MeterReporter {
 	public struct Configuration: Sendable {
         public var endpointURL: URL
         public var hostIdentifier: String?
-        public var appName: URL
-        public var appShortCode: String?
+        public var appName: String
+        public var appShortCode: String
 
 		/// The NSURLSession background indentifier
 		///
