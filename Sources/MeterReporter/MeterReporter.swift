@@ -71,12 +71,6 @@ public actor MeterReporter {
 					await self?.receivedPayloads(payloads)
 				}
 			}
-			// [AI GENERATED CODE] Handle metric payloads (memory, CPU usage, disk metrics)
-			subscriber.onMetricReceive = { payloads in
-				Task { [weak self] in
-					await self?.receivedMetricPayloads(payloads)
-				}
-			}
 			subscriber.start()
 		}
     }
@@ -188,22 +182,6 @@ extension MeterReporter {
                 try submit(data)
             } catch {
                 os_log("failed to submit payload %{public}@", log: log, type: .error, String(describing: error))
-            }
-        }
-    }
-
-    // [AI GENERATED CODE]
-    /// Handles metric payloads from MetricKit (memory, CPU usage, disk metrics, network metrics)
-    /// Unlike diagnostic payloads, metric payloads don't need symbolication or exception info
-    /// They're already in the correct JSON format and can be submitted directly
-    func receivedMetricPayloads(_ payloads: [Data]) {
-        os_log("received metric payloads %{public}d", log: log, type: .info, payloads.count)
-
-        for rawData in payloads {
-            do {
-                try submit(rawData)
-            } catch {
-                os_log("failed to submit metric payload %{public}@", log: log, type: .error, String(describing: error))
             }
         }
     }
