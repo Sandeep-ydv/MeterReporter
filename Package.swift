@@ -16,7 +16,7 @@ let package = Package(
 	],
 	dependencies: [
 		.package(url: "https://github.com/ChimeHQ/Meter", from: "0.4.0"),
-		.package(url: "https://github.com/Sandeep-ydv/Wells", revision: "b784e73e6e9e47bb6e50ecc718a1515c984577ef"),
+		.package(url: "https://github.com/Sandeep-ydv/Wells", revision: "d14ec51b113789330def7f50dca111ff55bf18b3"),
 	],
 	targets: [
 		.target(name: "MeterReporter", dependencies: ["Meter", "Wells"]),
